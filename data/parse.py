@@ -2,7 +2,7 @@ import csv
 import pandas as pd
 import numpy as np
 
-def computeRatings(win_rec, lose_rec):
+def computeStats(win_rec, lose_rec):
 	win_rec_sum = win_rec.sum()
 	lose_rec_sum = lose_rec.sum()
 
@@ -64,36 +64,42 @@ def __main__():
 	teams = pd.read_csv('teams.csv', index_col = 1)
 	ratings = pd.read_csv('massey_ordinals_2015.csv')
 
-	result = pd.DataFrame(columns=('result', 'ortg_spread', 'drtg_spread'))
-	#print data[(data.wteam==1103) & (data.wloc=='H')]
-	#print data.loc[(data.wteam==1103) & (data.daynum<20)].mean()
-	#print data.loc[(data.wteam==1103) & (data.daynum<=20)]
+	# check = 'Duke'
 
-	check = 'Duke'
+	# print computeStats(data[data.wteam==teams.loc[check,'team_id']], data[data.lteam==teams.loc[check,'team_id']])
+	# print len(data[data.wteam==teams.loc[check,'team_id']]), len(data[data.lteam==teams.loc[check,'team_id']])
+	# print data[data.wteam==teams.loc[check,'team_id']].lteam.values
+	# print ratings[ratings.team==teams.loc[check,'team_id']]
 
-	print computeRatings(data[data.wteam==teams.loc[check,'team_id']], data[data.lteam==teams.loc[check,'team_id']])
-	print len(data[data.wteam==teams.loc[check,'team_id']]), len(data[data.lteam==teams.loc[check,'team_id']])
-	#print ratings[ratings.team==teams.loc[check,'team_id']]
+	for i in xrange(5200, 5250):#len(data)):
+		#print teams.loc[data.loc[i, 'wteam'], 'team_name'], teams.loc[data.loc[i, 'lteam'], 'team_name']
+		if i%100 == 0:
+			print i
 
-	# for i in xrange(1000, 1150):#len(data)):
-	# 	#print teams.loc[data.loc[i, 'wteam'], 'team_name'], teams.loc[data.loc[i, 'lteam'], 'team_name']
-	# 	if i%100 == 0:
-	# 		print i
+		game = data.loc[i]
 
-	# 	game = data.loc[i]
+		#team a
+		a_win_rec = data[(data.wteam == game.wteam) & (data.daynum < game.daynum)]
+		a_lose_rec = data[(data.lteam == game.wteam) & (data.daynum < game.daynum)]
 
-	# 	a_win_rec = data[(data.wteam == game.wteam) & (data.daynum < game.daynum)]
-	# 	a_lose_rec = data[(data.lteam == game.wteam) & (data.daynum < game.daynum)]
+		a_stats = computeStats(a_win_rec, a_lose_rec)
 
-	# 	a_ratings = computeRatings(a_win_rec, a_lose_rec)
+		a_ranking = ratings[(ratings.team == game.wteam) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
 
+		a_opp_teams = np.append(a_win_rec.lteam.values, a_lose_rec.lteam.values)
+		a_opp_rankings = ratings[(ratings.team.isin(a_opp_teams)) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
 
-	# 	#print rec
+		#team b
+		b_win_rec = data[(data.wteam == game.lteam) & (data.daynum < game.daynum)]
+		b_lose_rec = data[(data.lteam == game.lteam) & (data.daynum < game.daynum)]
 
-	# 	b_win_rec = data[(data.wteam == game.lteam) & (data.daynum < game.daynum)]
-	# 	b_lose_rec = data[(data.lteam == game.lteam) & (data.daynum < game.daynum)]
+		b_stats = computeStats(b_win_rec, b_lose_rec)
 
-	# 	b_ratings = computeRatings(b_win_rec, b_lose_rec)
+		b_ranking = ratings[(ratings.team == game.wteam) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
+
+		b_opp_teams = np.append(b_win_rec.lteam.values, b_lose_rec.lteam.values)
+		b_opp_rankings = ratings[(ratings.team.isin(b_opp_teams)) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
+
 
 if __name__ == '__main__':
 	__main__()
