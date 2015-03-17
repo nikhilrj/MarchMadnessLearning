@@ -64,6 +64,8 @@ def __main__():
 	teams = pd.read_csv('teams.csv', index_col = 1)
 	ratings = pd.read_csv('massey_ordinals_2015.csv')
 
+	results = []
+
 	# check = 'Duke'
 
 	# print computeStats(data[data.wteam==teams.loc[check,'team_id']], data[data.lteam==teams.loc[check,'team_id']])
@@ -71,7 +73,7 @@ def __main__():
 	# print data[data.wteam==teams.loc[check,'team_id']].lteam.values
 	# print ratings[ratings.team==teams.loc[check,'team_id']]
 
-	for i in xrange(5200, 5250):#len(data)):
+	for i in xrange(1393, len(data)):
 		#print teams.loc[data.loc[i, 'wteam'], 'team_name'], teams.loc[data.loc[i, 'lteam'], 'team_name']
 		if i%100 == 0:
 			print i
@@ -86,7 +88,7 @@ def __main__():
 
 		a_ranking = ratings[(ratings.team == game.wteam) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
 
-		a_opp_teams = np.append(a_win_rec.lteam.values, a_lose_rec.lteam.values)
+		a_opp_teams = np.append(a_win_rec.lteam.values, a_lose_rec.wteam.values)
 		a_opp_rankings = ratings[(ratings.team.isin(a_opp_teams)) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
 
 		#team b
@@ -95,11 +97,19 @@ def __main__():
 
 		b_stats = computeStats(b_win_rec, b_lose_rec)
 
-		b_ranking = ratings[(ratings.team == game.wteam) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
+		b_ranking = ratings[(ratings.team == game.lteam) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
 
-		b_opp_teams = np.append(b_win_rec.lteam.values, b_lose_rec.lteam.values)
+		b_opp_teams = np.append(b_win_rec.lteam.values, b_lose_rec.wteam.values)
 		b_opp_rankings = ratings[(ratings.team.isin(b_opp_teams)) & (ratings.rating_day_num < game.daynum) & (ratings.rating_day_num >= (game.daynum-7))].mean().orank
 
+		if np.random.rand() > 0.5:
+			result_row = np.hstack((0, a_stats, a_ranking, a_opp_rankings, b_stats, b_ranking, b_opp_rankings))
+		else:
+			result_row = np.hstack((1, b_stats, b_ranking, b_opp_rankings, a_stats, a_ranking, a_opp_rankings))
+	
+		results.append(result_row)
+	
+	pd.DataFrame(results).to_csv('output.csv')
 
 if __name__ == '__main__':
 	__main__()
