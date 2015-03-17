@@ -6,6 +6,8 @@ def computeRatings(win_rec, lose_rec):
 	win_rec_sum = win_rec.sum()
 	lose_rec_sum = lose_rec.sum()
 
+	total_games = float(len(win_rec) + len(lose_rec))
+
 	#team's FGA / FTA
 	fga = win_rec_sum.wfga + lose_rec_sum.lfga
 	fgm = win_rec_sum.wfgm + lose_rec_sum.lfgm
@@ -34,47 +36,64 @@ def computeRatings(win_rec, lose_rec):
 	ortg = 100*pts/pos
 	drtg = 100*opp_pts/pos
 
+	pospg = pos / total_games
+
 	efg = (fgm + 0.5*fgm3) / fga
 	opp_efg = (opp_fgm + 0.5*opp_fgm3) / opp_fga
 
-	return [ortg, drtg, efg, opp_efg]
+	ts = pts / (2*(fga + 0.475*fta))
+	opp_ts = opp_pts / (2*(opp_fga + 0.475*opp_fta))
+
+	a_rate = (win_rec_sum.wast + lose_rec_sum.las) / float(fgm)
+	ft_rate = fta / float(fga)
+
+	ppg = pts / total_games
+	opp_ppg = opp_pts / total_games
+	apg = (win_rec_sum.wast + lose_rec_sum.las) / total_games
+	rpg = (orb + win_rec_sum.wdr + lose_rec_sum.ldr) / total_games
+	orpg = orb / total_games
+	bpg = (win_rec_sum.wblk + lose_rec_sum.lblk) / total_games
+	spg = (win_rec_sum.wstl + lose_rec_sum.lstl) / total_games
+	topg = (win_rec_sum.wto + lose_rec_sum.lto) / total_games
+	pfpg = (win_rec_sum.wpf + lose_rec_sum.lpf) / total_games
+
+	return [ortg, drtg, pospg, efg, opp_efg, ts, opp_ts, a_rate, ft_rate, ppg, opp_ppg, apg, rpg, orpg, bpg, spg, topg, pfpg]
 
 def __main__(): 
 	data = pd.read_csv('regular_season_detailed_results_2015.csv')
 	teams = pd.read_csv('teams.csv', index_col = 1)
 	ratings = pd.read_csv('massey_ordinals_2015.csv')
 
-	print ratings
-
 	result = pd.DataFrame(columns=('result', 'ortg_spread', 'drtg_spread'))
 	#print data[(data.wteam==1103) & (data.wloc=='H')]
 	#print data.loc[(data.wteam==1103) & (data.daynum<20)].mean()
 	#print data.loc[(data.wteam==1103) & (data.daynum<=20)]
 
-	#check = 'Texas'
+	check = 'Duke'
 
-	#print computeRatings(data[data.wteam==teams.loc[check,'team_id']], data[data.lteam==teams.loc[check,'team_id']])
-	#print len(data[data.wteam==teams.loc[check,'team_id']]), len(data[data.lteam==teams.loc[check,'team_id']])
+	print computeRatings(data[data.wteam==teams.loc[check,'team_id']], data[data.lteam==teams.loc[check,'team_id']])
+	print len(data[data.wteam==teams.loc[check,'team_id']]), len(data[data.lteam==teams.loc[check,'team_id']])
+	#print ratings[ratings.team==teams.loc[check,'team_id']]
 
-	for i in xrange(1000, 1150):#len(data)):
-		#print teams.loc[data.loc[i, 'wteam'], 'team_name'], teams.loc[data.loc[i, 'lteam'], 'team_name']
-		if i%100 == 0:
-			print i
+	# for i in xrange(1000, 1150):#len(data)):
+	# 	#print teams.loc[data.loc[i, 'wteam'], 'team_name'], teams.loc[data.loc[i, 'lteam'], 'team_name']
+	# 	if i%100 == 0:
+	# 		print i
 
-		game = data.loc[i]
+	# 	game = data.loc[i]
 
-		a_win_rec = data[(data.wteam == game.wteam) & (data.daynum < game.daynum)]
-		a_lose_rec = data[(data.lteam == game.wteam) & (data.daynum < game.daynum)]
+	# 	a_win_rec = data[(data.wteam == game.wteam) & (data.daynum < game.daynum)]
+	# 	a_lose_rec = data[(data.lteam == game.wteam) & (data.daynum < game.daynum)]
 
-		a_ratings = computeRatings(a_win_rec, a_lose_rec)
+	# 	a_ratings = computeRatings(a_win_rec, a_lose_rec)
 
 
-		#print rec
+	# 	#print rec
 
-		b_win_rec = data[(data.wteam == game.lteam) & (data.daynum < game.daynum)]
-		b_lose_rec = data[(data.lteam == game.lteam) & (data.daynum < game.daynum)]
+	# 	b_win_rec = data[(data.wteam == game.lteam) & (data.daynum < game.daynum)]
+	# 	b_lose_rec = data[(data.lteam == game.lteam) & (data.daynum < game.daynum)]
 
-		b_ratings = computeRatings(b_win_rec, b_lose_rec)
+	# 	b_ratings = computeRatings(b_win_rec, b_lose_rec)
 
 if __name__ == '__main__':
 	__main__()
