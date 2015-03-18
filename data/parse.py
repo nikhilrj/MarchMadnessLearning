@@ -59,7 +59,53 @@ def computeStats(win_rec, lose_rec):
 
 	return [ortg, drtg, pospg, efg, opp_efg, ts, opp_ts, a_rate, ft_rate, ppg, opp_ppg, apg, rpg, orpg, bpg, spg, topg, pfpg]
 
-def __main__(): 
+
+def matchup():
+	data = pd.read_csv('regular_season_detailed_results_2015.csv')
+	ratings = pd.read_csv('massey_ordinals_2015.csv')
+	bracket = pd.read_csv('submission.csv')
+
+	results = []
+
+	for i in xrange(0, len(bracket)):
+		if i%100 == 0:
+			print i
+			
+		match = bracket.loc[i, 'id']
+		team_a = int(match[5:9])
+		team_b = int(match[10:])
+		day = 135
+
+		#team a
+		a_win_rec = data[(data.wteam == team_a) & (data.daynum < day)]
+		a_lose_rec = data[(data.lteam == team_a) & (data.daynum < day)]
+
+		a_stats = computeStats(a_win_rec, a_lose_rec)
+
+		a_ranking = ratings[(ratings.team == team_a) & (ratings.rating_day_num < day) & (ratings.rating_day_num >= (day-7))].mean().orank
+
+		a_opp_teams = np.append(a_win_rec.lteam.values, a_lose_rec.wteam.values)
+		a_opp_rankings = ratings[(ratings.team.isin(a_opp_teams)) & (ratings.rating_day_num < day) & (ratings.rating_day_num >= (day-7))].mean().orank
+
+		#team b
+		b_win_rec = data[(data.wteam == team_b) & (data.daynum < day)]
+		b_lose_rec = data[(data.lteam == team_b) & (data.daynum < day)]
+
+		b_stats = computeStats(b_win_rec, b_lose_rec)
+
+		b_ranking = ratings[(ratings.team == team_b) & (ratings.rating_day_num < day) & (ratings.rating_day_num >= (day-7))].mean().orank
+
+		b_opp_teams = np.append(b_win_rec.lteam.values, b_lose_rec.wteam.values)
+		b_opp_rankings = ratings[(ratings.team.isin(b_opp_teams)) & (ratings.rating_day_num < day) & (ratings.rating_day_num >= (day-7))].mean().orank
+
+		result_row = np.hstack((b_stats, b_ranking, b_opp_rankings, a_stats, a_ranking, a_opp_rankings))
+	
+		results.append(result_row)
+	
+	pd.DataFrame(results).to_csv('matchup.csv')
+
+
+def parse(): 
 	data = pd.read_csv('regular_season_detailed_results_2015.csv')
 	teams = pd.read_csv('teams.csv', index_col = 1)
 	ratings = pd.read_csv('massey_ordinals_2015.csv')
@@ -112,4 +158,5 @@ def __main__():
 	pd.DataFrame(results).to_csv('output.csv')
 
 if __name__ == '__main__':
-	__main__()
+	#parse()
+	matchup()
